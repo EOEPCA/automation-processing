@@ -1,0 +1,47 @@
+@startuml
+!include <kubernetes/k8s-sprites-unlabeled-25pct>
+autonumber "<b>[00]"
+
+participant "<$node>\nKnative Eventing" as keventing
+
+box "Argo Events"
+  participant "Webhook event-source\ncloudevents entry point" as aewhi
+  participant "HTTP Trigger\nOGC Process" as aehti
+
+  participant "HTTP Trigger\ncloudevents" as aehto
+  participant "Webhook event-source\nOGC Process entry point" as aewho
+end box
+
+participant "ZOO OGC API Processes" as zoo
+
+== Process request ==
+
+keventing -> aewhi ++ : POST a cloudevents describing a new acquisition
+aewhi --> keventing : ACK
+aewhi -> aewhi: Transform the input cloudevents to OGC Process\nAdd the callback URL parameter
+aewhi -> aehti ++ : Forward the OGC Process to be submitted to Zoo
+deactivate aewhi
+
+aehti -> zoo ++ : POST OGC Process
+zoo -> aehti -- : Response
+deactivate aehti
+
+== Asynchronous Process response ==
+
+' this is a workaround to avoid multiple times activation error
+zoo -[hidden]> aewho
+
+activate zoo
+zoo -> aewho ++ : POST the Process result to the callback URL
+aewho --> zoo : ACK
+deactivate zoo
+
+aewho -> aewho : Transform the OGC Process result to cloudevents
+aewho -> aehto ++ : Forward the cloudevents to be submitted to Knative Eventing
+deactivate aewho
+
+aehto -> keventing ++ : Submit cloudevents containing the OGC Process result
+keventing --> aehto -- : ACK
+deactivate aehto
+
+@enduml

@@ -1,0 +1,36 @@
+@startuml
+!include <kubernetes/k8s-sprites-unlabeled-25pct>
+
+interface HTTP as aehttpi
+
+component "Argo Events" {
+  component "Webhook event-source\ncloudevents entry point" as aewhi
+  component "HTTP Trigger\nOGC Process" as aehti
+
+  interface HTTP as aehttpo
+  component "Webhook event-source\nOGC Process entry point" as aewho
+  component "HTTP Trigger\ncloudevents" as aehto
+}
+
+interface HTTP as zooi
+component "ZOO OGC API Processes" as zoo
+
+interface HTTP as keventingi
+component "<$node>\nKnative Eventing" as keventing
+
+keventing -r-( aehttpi : POST a cloudevents describing a new acquisition
+aehttpi -> aewhi : Accepts cloudevents payloads
+aewhi -> aehti : Transform cloudevents to OGC Process
+aehti -r-( zooi : POST OGC Process
+zooi -> zoo : Handle request
+
+zoo -l-( aehttpo : Asynchronously POST the Process result to callback URL
+aehttpo -l-> aewho : Accept OGC Process payload
+aewho -l-> aehto : Transform the OGC Process to cloudevents
+aehto -l-( keventingi : POST OGC Process result as cloudevents
+keventingi -l-> keventing : Handle cloudevents
+
+' layout
+aewhi -[hidden]d-> aehto
+
+@enduml

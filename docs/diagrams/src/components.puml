@@ -5,11 +5,11 @@ interface HTTP as aehttpi
 
 component "Argo Events" {
   component "Webhook event-source\ncloudevents entry point" as aewhi
-  component "HTTP Trigger\nOGC Process" as aehti
+  component "HTTP Trigger\ncloudevents to OGC Process" as aehti
 
   interface HTTP as aehttpo
   component "Webhook event-source\nOGC Process entry point" as aewho
-  component "HTTP Trigger\ncloudevents" as aehto
+  component "HTTP Trigger\nOGC Process to cloudevents" as aehto
 }
 
 interface HTTP as zooi
@@ -20,14 +20,14 @@ component "<$node>\nKnative Eventing" as keventing
 
 keventing -r-( aehttpi : POST a cloudevents describing a new acquisition
 aehttpi -> aewhi : Accepts cloudevents payloads
-aewhi -> aehti : Transform cloudevents to OGC Process
-aehti -r-( zooi : POST OGC Process
+aewhi -> aehti : Forward the cloudevents to be processed
+aehti -r-( zooi : Transform cloudevents to OGC Process execute request\nPOST OGC Process
 zooi -> zoo : Handle request
 
-zoo -l-( aehttpo : Asynchronously POST the Process result to callback URL
-aehttpo -l-> aewho : Accept OGC Process payload
-aewho -l-> aehto : Transform the OGC Process to cloudevents
-aehto -l-( keventingi : POST OGC Process result as cloudevents
+zoo -l-( aehttpo : Asynchronously POST the Process execution result to callback URL
+aehttpo -l-> aewho : Accept OGC Process execution result payload
+aewho -l-> aehto : Forward the OGC Process execution result to be processed
+aehto -l-( keventingi : Transform the OGC Process execution result to cloudevents\nPOST OGC Process result as cloudevents
 keventingi -l-> keventing : Handle cloudevents
 
 ' layout

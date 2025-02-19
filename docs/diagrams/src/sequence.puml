@@ -6,9 +6,9 @@ participant "<$node>\nKnative Eventing" as keventing
 
 box "Argo Events"
   participant "Webhook event-source\ncloudevents entry point" as aewhi
-  participant "HTTP Trigger\nOGC Process" as aehti
+  participant "HTTP Trigger\ncloudevents to OGC Process" as aehti
 
-  participant "HTTP Trigger\ncloudevents" as aehto
+  participant "HTTP Trigger\nOGC Process to cloudevents" as aehto
   participant "Webhook event-source\nOGC Process entry point" as aewho
 end box
 
@@ -18,12 +18,12 @@ participant "ZOO OGC API Processes" as zoo
 
 keventing -> aewhi ++ : POST a cloudevents describing a new acquisition
 aewhi --> keventing : ACK
-aewhi -> aewhi: Transform the input cloudevents to OGC Process\nAdd the callback URL parameter
-aewhi -> aehti ++ : Forward the OGC Process to be submitted to Zoo
+aewhi -> aehti ++ : Forward the cloudevents describing the new acquisition
+aehti -> aehti: Transform the input cloudevents to OGC Process execute request\nAdd the internal callback URL parameter
 deactivate aewhi
 
 aehti -> zoo ++ : POST OGC Process
-zoo -> aehti -- : Response
+zoo --> aehti -- : ACK
 deactivate aehti
 
 == Asynchronous Process response ==
@@ -32,15 +32,15 @@ deactivate aehti
 zoo -[hidden]> aewho
 
 activate zoo
-zoo -> aewho ++ : POST the Process result to the callback URL
+zoo -> aewho ++ : POST the Process result to the internal callback URL
 aewho --> zoo : ACK
 deactivate zoo
 
-aewho -> aewho : Transform the OGC Process result to cloudevents
-aewho -> aehto ++ : Forward the cloudevents to be submitted to Knative Eventing
+aewho -> aehto ++ : Forward the OGC Process execution result to be submitted to Knative Eventing
+aehto -> aehto : Transform the OGC Process result to cloudevents
 deactivate aewho
 
-aehto -> keventing ++ : Submit cloudevents containing the OGC Process result
+aehto -> keventing ++ : Submit cloudevents representing the OGC Process result to the callback URL
 keventing --> aehto -- : ACK
 deactivate aehto
 

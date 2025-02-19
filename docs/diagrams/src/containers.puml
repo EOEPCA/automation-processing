@@ -13,7 +13,7 @@ node "Automation" {
 
 keventingi -d-> keventing
 
-keventing -> aevents : POST cloudevents payload
+keventing -> aevents : POST new acquisition\ncloudevents payload
 aevents -> zoo : POST cloudevents\nto OGC Process\ntransformed message
 zoo -> aevents : POST OGC Processes\nexecution results\nto callback URL
 aevents -> keventing : POST OGC Processes\nexecution results to cloudevents\ntransformed message

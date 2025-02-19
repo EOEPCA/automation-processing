@@ -32,15 +32,15 @@ deactivate aehti
 zoo -[hidden]> aewho
 
 activate zoo
-zoo -> aewho ++ : POST the Process result to the internal callback URL
+zoo -> aewho ++ : POST the OGC Process execution result to the internal callback URL
 aewho --> zoo : ACK
 deactivate zoo
 
 aewho -> aehto ++ : Forward the OGC Process execution result to be submitted to Knative Eventing
-aehto -> aehto : Transform the OGC Process result to cloudevents
+aehto -> aehto : Transform the OGC Process execution result to cloudevents
 deactivate aewho
 
-aehto -> keventing ++ : Submit cloudevents representing the OGC Process result to the callback URL
+aehto -> keventing ++ : Submit cloudevents representing the OGC Process execution result to the callback URL
 keventing --> aehto -- : ACK
 deactivate aehto
 
